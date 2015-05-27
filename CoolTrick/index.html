@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html ng-app="knowIt">
+<head>
+
+	<title>KnowIt</title>
+
+	 <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/ng-grid/2.0.11/ng-grid.min.css">
+	<link rel="stylesheet" type="text/css" href="style.css">
+	<link rel="json" type="json" href="bullets.json">
+</head>
+
+<body ng-controller="mainCtrl">
+
+  
+  <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+	<div class="container">
+	  <div id="myContainer">
+	    
+	    <form class="navbar-form navbar-left" role="search">
+	      <div class="form-group">
+	      <div ng-init="stockData"></div>
+	       <tr ng-repeat="stockData in stockData | filter:search">
+	          <label class="firstInput"> Search Date:  <input ng-model="search" ng-click="getStockData(search.date)"> </label>
+	           <!--  <button class="btn btn-primary" ng-click="getStockData(dateQuery)"> Submit </button> -->
+                 <td>{{stockData.Date}}</td>
+
+                <!--  <label> Search High: <input ng-model="search.high" ng-click="getStockData(search.high)"></label> -->
+					<td>{{stockData.High}}</td>
+
+<!-- 				 <label> Search Low: <input ng-model="search.low" ng-click="getStockData(search.low)"></label> -->
+				    <td>{{stockData.Low}}</td>
+
+				<!--  <label> Search Close: <input ng-model="search.close" ng-click="getStockData(search.close)"></label> -->
+				    <td>{{stockData.Close}}</td>
+
+				<!--  <label> Search Volume: <input ng-model="volumeQuery" ng-click="getStockData(volumeQuery)"></label>
+   				 <td>{{stocks.Volume}}</td>
+ -->
+  			</tr>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    
+	    <div class="panel panel-default">
+	     
+	     <div class="gridStyle" ng-grid="gridOptions" swap-image="defaultInfo.search"></div>
+	   </div>
+
+	<div class="parallax-window" data-parallax="scroll" data-image-src="http://cdn2.business2community.com/wp-content/uploads/2013/03/WallStreetSignGeneric20120305.jpg"></div>
+	   </br>
+	   <div> {{results.High}} </div>
+      
+
+<meta charset="utf-8">
+<style>
+
+body {
+  font: 10px sans-serif;
+  shape-rendering: crispEdges;
+}
+
+.day {
+  fill: #fff;
+  stroke: #ccc;
+}
+
+.month {
+  fill: none;
+  stroke: #000;
+  stroke-width: 2px;
+}
+
+.RdYlGn .q0-11{fill:rgb(165,0,38)}
+.RdYlGn .q1-11{fill:rgb(215,48,39)}
+.RdYlGn .q2-11{fill:rgb(244,109,67)}
+.RdYlGn .q3-11{fill:rgb(253,174,97)}
+.RdYlGn .q4-11{fill:rgb(254,224,139)}
+.RdYlGn .q5-11{fill:rgb(255,255,191)}
+.RdYlGn .q6-11{fill:rgb(217,239,139)}
+.RdYlGn .q7-11{fill:rgb(166,217,106)}
+.RdYlGn .q8-11{fill:rgb(102,189,99)}
+.RdYlGn .q9-11{fill:rgb(26,152,80)}
+.RdYlGn .q10-11{fill:rgb(0,104,55)}
+
+</style>
+<body>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script>
+
+var width = 960,
+    height = 136,
+    cellSize = 17; // cell size
+
+var day = d3.time.format("%w"),
+    week = d3.time.format("%U"),
+    percent = d3.format(".1%"),
+    format = d3.time.format("%Y-%m-%d");
+
+var color = d3.scale.quantize()
+    .domain([-.05, .05])
+    .range(d3.range(11).map(function(d) { return "q" + d + "-11"; }));
+
+var svg = d3.select("body").selectAll("svg")
+    .data(d3.range(1990, 2011))
+  .enter().append("svg")
+    .attr("width", width)
+    .attr("height", height)
+    .attr("class", "RdYlGn")
+  .append("g")
+    .attr("transform", "translate(" + ((width - cellSize * 53) / 2) + "," + (height - cellSize * 7 - 1) + ")");
+
+svg.append("text")
+    .attr("transform", "translate(-6," + cellSize * 3.5 + ")rotate(-90)")
+    .style("text-anchor", "middle")
+    .text(function(d) { return d; });
+
+var rect = svg.selectAll(".day")
+    .data(function(d) { return d3.time.days(new Date(d, 0, 1), new Date(d + 1, 0, 1)); })
+  .enter().append("rect")
+    .attr("class", "day")
+    .attr("width", cellSize)
+    .attr("height", cellSize)
+    .attr("x", function(d) { return week(d) * cellSize; })
+    .attr("y", function(d) { return day(d) * cellSize; })
+    .datum(format);
+
+rect.append("title")
+    .text(function(d) { return d; });
+
+svg.selectAll(".month")
+    .data(function(d) { return d3.time.months(new Date(d, 0, 1), new Date(d + 1, 0, 1)); })
+  .enter().append("path")
+    .attr("class", "month")
+    .attr("d", monthPath);
+
+d3.csv("dji.csv", function(error, csv) {
+  var data = d3.nest()
+    .key(function(d) { return d.Date; })
+    .rollup(function(d) { return (d[0].Close - d[0].Open) / d[0].Open; })
+    .map(csv);
+
+  rect.filter(function(d) { return d in data; })
+      .attr("class", function(d) { return "day " + color(data[d]); })
+    .select("title")
+      .text(function(d) { return d + ": " + percent(data[d]); });
+});
+
+function monthPath(t0) {
+  var t1 = new Date(t0.getFullYear(), t0.getMonth() + 1, 0),
+      d0 = +day(t0), w0 = +week(t0),
+      d1 = +day(t1), w1 = +week(t1);
+  return "M" + (w0 + 1) * cellSize + "," + d0 * cellSize
+      + "H" + w0 * cellSize + "V" + 7 * cellSize
+      + "H" + w1 * cellSize + "V" + (d1 + 1) * cellSize
+      + "H" + (w1 + 1) * cellSize + "V" + 0
+      + "H" + (w0 + 1) * cellSize + "Z";
+}
+
+d3.select(self.frameElement).style("height", "2910px");
+
+</script>
+
+
+
+
+<div class="parallax-window2" data-parallax="scroll" data-image-src="http://www.offthegridnews.com/wp-content/uploads/2014/08/stock-market-stockrockandroll.jpg"></div>
+  
+	 
+	    <script src="http://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+	    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.20/angular.min.js"></script>
+	    <script src="https://cdnjs.cloudflare.com/ajax/libs/ng-grid/2.0.11/ng-grid.min.js"></script>
+	    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.js"></script>
+	    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+	    <script src="js/app.js"></script>
+	    <script src="js/mainCtrl.js"></script>
+	    <script src="js/stService.js"></script>
+	    <script src="js/parallax.js"></script>
+	    <script src="js/bullet.js"></script>
+
+
+</body>
+</html>
